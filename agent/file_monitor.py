@@ -68,7 +68,7 @@ def add_folder_entry_count(folder_path):
 
 def check_entry_count(folder_path):
     count = count_entries_in_folder_os(folder_path)
-    with open (config_path, 'r') as c:
+    with open (folder_config_path, 'r') as c:
         c_json = json.load(c)
         if c_json[folder_path] != count:
             print("file added or deleted from folder")
@@ -111,7 +111,7 @@ def premissions_changed(file_path):
     with open (permissions_config_path, 'r') as c:
         c_json = json.load(c)
         for file in all_files:
-            file_stat = os.stat(file_path)
+            file_stat = os.stat(file)
             perm = stat.S_IMODE(file_stat.st_mode)
             file_name = os.path.basename(file)
 

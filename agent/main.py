@@ -16,11 +16,12 @@ def main():
     thread_folder_changed = threading.Thread(target=file_monitor.check_entry_count(folder_path))
     thread_folder_file_deleated = threading.Thread(target=file_monitor.is_file_deleted(file_path))
     
-
-    thread_file_changed.start()
-    thread_file_perm_changed.start()
-    thread_folder_changed.start()
-    thread_folder_file_deleated.start()
+    while True:
+        thread_file_changed.start()
+        thread_file_perm_changed.start()
+        thread_folder_changed.start()
+        thread_folder_file_deleated.start()
+        time.sleep(30)
 
 def init():
     file_monitor.add_filehash_to_json(file_path)
