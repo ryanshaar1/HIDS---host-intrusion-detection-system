@@ -114,7 +114,6 @@ def premissions_changed(file_path):
             file_stat = os.stat(file)
             perm = stat.S_IMODE(file_stat.st_mode)
             file_name = os.path.basename(file)
-
             if c_json[file] != perm:
                 print(f"the premissions of {file_name} located in {file} has changed from {c_json[file]} to {perm}")
         
