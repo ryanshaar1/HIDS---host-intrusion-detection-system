@@ -72,17 +72,17 @@ def check_new_processes():
         if process.ExecutablePath:
             folder_path = os.path.dirname(process.ExecutablePath)
         if process.Name not in processes and folder_path in suspicious_process_locations:
-            print(f"suspicious process running: {process.Name} in {folder_path}")
+            return "HEIGH",f"suspicious process running: {process.Name} in {folder_path}"
         elif process in processes and folder_path in suspicious_process_locations and process.ProcessId not in process_pids:
-            print(f"suspicious process running: {process.Name} in {folder_path}")
+            return "HEIGH",f"suspicious process running: {process.Name} in {folder_path}"
 
 
 
 
-def create_dictionary_of_length_of_processes(list):
-    for entry in list:
+def create_dictionary_of_length_of_processes():
+    for entry in suspicious_process_locations:
         length = count_entries_in_folder_os(entry)
-        dictionary.update(entry, length)
+        dictionary.update({entry: length})
 
 
 def is_process_running_by_name(process_name):
@@ -95,7 +95,7 @@ def is_process_running_by_name(process_name):
 def all_processes_running():
     for process in critical_process_names:
         if not is_process_running_by_name(process):
-            print(f"process {process} is not running")
+            return "CRITICAL",f"process {process} is not running"
 
 
 

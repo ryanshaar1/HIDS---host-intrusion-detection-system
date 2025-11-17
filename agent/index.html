@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HIDS Dashboard</title>
+
+    <style>
+        body {
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        #alert-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .alert {
+            background: #1e293b;
+            border-left: 6px solid #64748b;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            box-shadow: 0 0 5px #0004;
+        }
+
+        .alert.critical { border-color: #1d0000; }
+        .alert.high { border-color: #ef4444; }
+        .alert.medium { border-color: #f59e0b; }
+        .alert.low { border-color: #22c55e; }
+
+        .type {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .time {
+            font-size: 0.85em;
+            opacity: 0.7;
+        }
+
+        .content {
+            margin-top: 5px;
+        }
+
+        #add-btn {
+            display: block;
+            margin: 25px auto;
+            padding: 10px 20px;
+            background: #2563eb;
+            border: none;
+            color: white;
+            font-size: 1em;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #add-btn:hover {
+            background: #1d4ed8;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <h1>HIDS Alerts Dashboard</h1>
+
+    <div id="alert-container"></div>
+
+
+    <script>
+        
+        function addAlert(type, content) {
+            const container = document.getElementById("alert-container");
+
+            const alertDiv = document.createElement("div");
+            alertDiv.className = "alert " + type.toLowerCase();
+
+            const now = new Date().toLocaleString();
+
+            alertDiv.innerHTML = `
+                <div class="type">Type: ${type}</div>
+                <div class="time">${now}</div>
+                <div class="content">${content}</div>
+            `;
+
+            container.prepend(alertDiv);
+        }
+
+
+
+        addAlert("LOW", "HIDS Started");
+
+        function getAllAlerts(){
+            path = "http://127.0.0.1:5000/getAlerts";
+
+            fetch(path)
+            .then(Response => Response.json())
+            .then(data => {
+                console.log(data);
+                for (let i = 0; i < data.length; i++) {
+                    addAlert(data[i].type, data[i].content);
+                }
+            });
+        }
+
+        setInterval(getAllAlerts, 5000);
+
+    </script>
+
+</body>
+</html>

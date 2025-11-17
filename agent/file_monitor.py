@@ -6,37 +6,40 @@ import stat
 
 folder_path = "C:/Users/Ryan/OneDrive/מסמכים/CODING/VSCODE/pythonLearning/python/HIDS - host intrusion detection system/agent/sensitive"
 folder_config_path = "C:/Users/Ryan/OneDrive/מסמכים/CODING/VSCODE/pythonLearning/python/HIDS - host intrusion detection system/agent/folder_entry_count.json"
-file_path = "C:/Users/Ryan/OneDrive/מסמכים/CODING/VSCODE/pythonLearning/python/HIDS - host intrusion detection system/agent/test.txt"
 config_path = "C:/Users/Ryan/OneDrive/מסמכים/CODING/VSCODE/pythonLearning/python/HIDS - host intrusion detection system/agent/file_hash.json"
 permissions_config_path = "C:/Users/Ryan/OneDrive/מסמכים/CODING/VSCODE/pythonLearning/python/HIDS - host intrusion detection system/agent/file_permissions.json"
-
+file_path = "C:/Users/Ryan/OneDrive/מסמכים/CODING/VSCODE/pythonLearning/python/HIDS - host intrusion detection system/agent/test.txt" 
 
 def add_filehash_to_json(file):
-    
-    with open (file, 'r', encoding="utf-8") as f:
-        content = f.read()
-        sha256 = hashlib.sha256()
-        sha256.update(content.encode())
-        file_hash = sha256.hexdigest()
-        file_dict = {
-            file:file_hash
-        }
+    try:
+        with open (file, 'r', encoding="utf-8") as f:
+            content = f.read()
+            sha256 = hashlib.sha256()
+            sha256.update(content.encode())
+            file_hash = sha256.hexdigest()
+            file_dict = {
+                file:file_hash
+            }
 
-            
-        update_json(config_path, file_dict)
+                
+            update_json(config_path, file_dict)
+    except Exception as e:
+        print(e)
 
 def compare_hashes(file):
-    with open (file, 'r', encoding="utf-8") as f:
-        content = f.read()
-        sha256 = hashlib.sha256()
-        sha256.update(content.encode())
-        file_hash = sha256.hexdigest()
+    try:
+        with open (file, 'r', encoding="utf-8") as f:
+            content = f.read()
+            sha256 = hashlib.sha256()
+            sha256.update(content.encode())
+            file_hash = sha256.hexdigest()
 
-        with open (config_path, 'r') as c:
-            c_json = json.load(c)
-            if c_json[file] != file_hash:
-                print("file changed")
-        
+            with open (config_path, 'r') as c:
+                c_json = json.load(c)
+                if c_json[file] != file_hash:
+                    return "CRITICAL", f"file changed: {file}"
+    except Exception as e:
+        print(e)
 def does_hash_exist(file):
     with open (config_path, 'r') as c:
         c_json = json.load(c)
@@ -45,9 +48,7 @@ def does_hash_exist(file):
     
 def is_file_deleted(file):
     if not os.path.exists(file):
-        print("the file was deleated")
-    else:
-        print("the file exists")
+        return "CRITICAL", f"the file was deleted: {file}"
 
 
 def count_entries_in_folder_os(folder_path):
@@ -57,8 +58,15 @@ def count_entries_in_folder_os(folder_path):
     if not os.path.isdir(folder_path):
         return "Error: Folder path does not exist or is not a directory."
     file_count = 0
-    for entry in os.listdir(folder_path):
-        file_count += 1
+    try:
+        for entry in os.listdir(folder_path):
+            file_count += 1
+    except PermissionError:
+        print(f"Permission denied: {folder_path}")
+        return 0
+    except Exception as e:
+        print(f"Error reading folder {folder_path}: {e}")
+        return 0
     return file_count
 
 def add_folder_entry_count(folder_path):
@@ -71,7 +79,7 @@ def check_entry_count(folder_path):
     with open (folder_config_path, 'r') as c:
         c_json = json.load(c)
         if c_json[folder_path] != count:
-            print("file added or deleted from folder")
+            return "HEIGH", f"file added or deleted from folder: was {c_json[folder_path]} now {count}"
 
 def update_json(json_path, dic):
     with open (json_path, 'r') as c:
@@ -81,19 +89,14 @@ def update_json(json_path, dic):
             json.dump(c_json, j)
 
 
-def file_added_in_sensitive_folder(folder_path):
-    count = count_entries_in_folder_os(folder_path)
-    with open (folder_config_path, 'r') as c:
-        c_json = json.load(c)
-        if c_json[folder_path] != count:
-            print("the amount of entries in folder changed")
 
 def get_all_files_in_folder(folder_path):
     all_files = []
     for root, dirs, files in os.walk(folder_path):
         for file in files:
             full_path = os.path.join(root, file)
-            all_files.append(full_path)
+            if os.access(full_path, os.R_OK):
+                all_files.append(full_path)
     return all_files
 
 def add_premission_to_json(folder_path):
@@ -115,7 +118,7 @@ def premissions_changed(file_path):
             perm = stat.S_IMODE(file_stat.st_mode)
             file_name = os.path.basename(file)
             if c_json[file] != perm:
-                print(f"the premissions of {file_name} located in {file} has changed from {c_json[file]} to {perm}")
+                return "HEIGH",f"the premissions of {file_name} located in {file} has changed from {c_json[file]} to {perm}"
         
 
     
