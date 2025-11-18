@@ -1,6 +1,7 @@
 import psutil
 from file_monitor import count_entries_in_folder_os
 import wmi
+import pythoncom
 import os
 import time
 
@@ -67,14 +68,22 @@ def create_processes_lists():
         process_pids.append(process.ProcessId)
 
 def check_new_processes():
-    f = wmi.WMI()
-    for process in f.Win32_Process():
-        if process.ExecutablePath:
-            folder_path = os.path.dirname(process.ExecutablePath)
-        if process.Name not in processes and folder_path in suspicious_process_locations:
-            return "HEIGH",f"suspicious process running: {process.Name} in {folder_path}"
-        elif process in processes and folder_path in suspicious_process_locations and process.ProcessId not in process_pids:
-            return "HEIGH",f"suspicious process running: {process.Name} in {folder_path}"
+    pythoncom.CoInitialize()
+    try:
+        f = wmi.WMI()
+        for process in f.Win32_Process():
+            if process.ExecutablePath:
+                folder_path = os.path.dirname(process.ExecutablePath)
+            if process.Name not in processes and folder_path in suspicious_process_locations:
+                return "HEIGH",f"suspicious process running: {process.Name} in {folder_path}"
+            elif process in processes and folder_path in suspicious_process_locations and process.ProcessId not in process_pids:
+                return "HEIGH",f"suspicious process running: {process.Name} in {folder_path}"
+            else:
+                return None,None
+    except:
+        return None,None
+    finally:
+        pythoncom.CoUninitialize()
 
 
 
@@ -96,6 +105,7 @@ def all_processes_running():
     for process in critical_process_names:
         if not is_process_running_by_name(process):
             return "CRITICAL",f"process {process} is not running"
+    return None,None
 
 
 

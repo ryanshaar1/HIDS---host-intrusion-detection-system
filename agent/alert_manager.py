@@ -113,4 +113,5 @@ if __name__ == "__main__":
     honeypot_thread = threading.Thread(target=honeypot_event_loop_alert)
 
     flask_thread.start()
+    honeypot_thread.start()
     main()

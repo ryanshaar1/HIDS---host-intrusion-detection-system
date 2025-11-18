@@ -38,8 +38,11 @@ def compare_hashes(file):
                 c_json = json.load(c)
                 if c_json[file] != file_hash:
                     return "CRITICAL", f"file changed: {file}"
+            return None, None
     except Exception as e:
         print(e)
+        return None, None
+
 def does_hash_exist(file):
     with open (config_path, 'r') as c:
         c_json = json.load(c)
@@ -49,6 +52,7 @@ def does_hash_exist(file):
 def is_file_deleted(file):
     if not os.path.exists(file):
         return "CRITICAL", f"the file was deleted: {file}"
+    return None,None
 
 
 def count_entries_in_folder_os(folder_path):
@@ -80,6 +84,8 @@ def check_entry_count(folder_path):
         c_json = json.load(c)
         if c_json[folder_path] != count:
             return "HEIGH", f"file added or deleted from folder: was {c_json[folder_path]} now {count}"
+        
+    return None, None
 
 def update_json(json_path, dic):
     with open (json_path, 'r') as c:
@@ -119,6 +125,7 @@ def premissions_changed(file_path):
             file_name = os.path.basename(file)
             if c_json[file] != perm:
                 return "HEIGH",f"the premissions of {file_name} located in {file} has changed from {c_json[file]} to {perm}"
+    return None, None
         
 
     

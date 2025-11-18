@@ -27,6 +27,7 @@ def checking_if_new_sus_open_ports_opened():
     for port in ports:
         if port not in my_ports and port in sus_open_ports:
             return "MEDIUM",f"syspicous new port opened: {port}"
+    return None, None
 
 def detect_scanners_setup():
 
@@ -53,8 +54,8 @@ def honeypot_event_loop():
             port = key.data
             try:
                 conn, addr = listener_socket.accept()
-                return "LOW",f"[SCAN DETECTED] {addr[0]} tried connecting to honeypot port {port}"
                 conn.close()
+                return "LOW",f"[SCAN DETECTED] {addr[0]} tried connecting to honeypot port {port}"
             except BlockingIOError:
                 pass
         time.sleep(0.5)
@@ -63,10 +64,16 @@ total_broken_connections = 0
 time_in_seconds = 0
 
 def rate_monitoring():
+    global total_broken_connections, time_in_seconds
     connections = psutil.net_connections(kind='inet')
     broken_connections = [connection for connection in connections if connection.status == "SYN_RECV"]
-    avg = total_broken_connections/time_in_seconds
-    if(broken_connections > avg * 5):
+    avg = 0
+    if(time_in_seconds == 0):
+        avg = total_broken_connections
+    else:
+        avg = total_broken_connections/time_in_seconds
+    if(len(broken_connections) > avg * 5):
         return "MEDIUM","spike detected"
     time_in_seconds+=1
-    total_broken_connections += broken_connections
+    total_broken_connections += len(broken_connections)
+    return None, None
